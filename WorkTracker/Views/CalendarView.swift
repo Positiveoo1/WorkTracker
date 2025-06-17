@@ -6,7 +6,7 @@ struct CalendarView: View {
     @Binding var displayedMonth: Date
     private let calendar = Calendar.current
 
-    // Compute the 42-day grid for the month
+
     private var days: [Date] {
         guard let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: displayedMonth))
         else { return [] }
@@ -17,10 +17,10 @@ struct CalendarView: View {
         return (0..<42).compactMap { calendar.date(byAdding: .day, value: $0, to: gridStart) }
     }
 
-    // Rotate weekday symbols so they start on calendar.firstWeekday
+
     private var weekdaySymbols: [String] {
-        let symbols = calendar.shortStandaloneWeekdaySymbols  // e.g. ["Sun","Mon",...]
-        let firstIndex = calendar.firstWeekday - 1             // convert 1-based to 0-based
+        let symbols = calendar.shortStandaloneWeekdaySymbols
+        let firstIndex = calendar.firstWeekday - 1
         guard firstIndex >= 0 && firstIndex < symbols.count else { return symbols }
         return Array(symbols[firstIndex...] + symbols[..<firstIndex])
     }
@@ -41,7 +41,7 @@ struct CalendarView: View {
             }
             .padding(.horizontal)
 
-            // Weekday headers, aligned to locale first weekday
+
             HStack {
                 ForEach(weekdaySymbols, id: \.self) { sym in
                     Text(sym)
@@ -50,7 +50,7 @@ struct CalendarView: View {
                 }
             }
 
-            // Day cells
+
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
                 ForEach(days, id: \.self) { date in
                     DayCell(

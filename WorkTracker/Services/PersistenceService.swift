@@ -4,7 +4,6 @@ class PersistenceService {
     static let shared = PersistenceService()
     private let entriesKey = "work_entries"
 
-    // Load from UserDefaults; simple for minimal persistence
     func loadEntries() -> [WorkEntry] {
         guard let data = UserDefaults.standard.data(forKey: entriesKey) else { return [] }
         let decoder = JSONDecoder()

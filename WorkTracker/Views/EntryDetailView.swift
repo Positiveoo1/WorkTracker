@@ -22,7 +22,6 @@ struct EntryDetailView: View {
         let cal = Calendar.current
         let dayStart = cal.startOfDay(for: date)
 
-        // Build startTime from AppStorage values
         var comps = DateComponents()
         comps.year = cal.component(.year, from: date)
         comps.month = cal.component(.month, from: date)
@@ -31,7 +30,6 @@ struct EntryDetailView: View {
         comps.minute = UserDefaults.standard.integer(forKey: "lastStartMinute")
         let defaultStart = cal.date(from: comps) ?? cal.date(bySettingHour: 9, minute: 0, second: 0, of: dayStart)!
 
-        // Build endTime from AppStorage values
         comps.hour = UserDefaults.standard.integer(forKey: "lastEndHour")
         comps.minute = UserDefaults.standard.integer(forKey: "lastEndMinute")
         let defaultEnd = cal.date(from: comps) ?? cal.date(bySettingHour: 17, minute: 0, second: 0, of: dayStart)!

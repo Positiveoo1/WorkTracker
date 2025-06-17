@@ -8,7 +8,7 @@ struct ContentView: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {    
+            VStack(spacing: 0) {
                 CalendarView(vm: vm, selectedDate: $selectedDate, displayedMonth: $displayedMonth)
                     .frame(maxHeight: 350)
                 Divider()
