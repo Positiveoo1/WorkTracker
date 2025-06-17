@@ -27,6 +27,13 @@ struct EntryListView: View {
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
+                    .swipeActions {
+                        Button(role: .destructive) {
+                            vm.deleteEntry(entry)
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
                 }
             }
             .listStyle(PlainListStyle())
@@ -47,3 +54,4 @@ struct EntryListView: View {
         return df
     }
 }
+

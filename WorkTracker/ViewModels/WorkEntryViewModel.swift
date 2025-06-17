@@ -15,6 +15,12 @@ class WorkEntryViewModel: ObservableObject {
         save()
     }
 
+    // New: delete
+    func deleteEntry(_ entry: WorkEntry) {
+        entries.removeAll { $0.id == entry.id }
+        save()
+    }
+
     func entries(on date: Date) -> [WorkEntry] {
         let day = calendar.startOfDay(for: date)
         return entries.filter { calendar.isDate($0.date, inSameDayAs: day) }
@@ -41,7 +47,12 @@ class WorkEntryViewModel: ObservableObject {
         entries(inMonth: month).map { $0.earnings }.reduce(0, +)
     }
 
+    func hasEntries(on date: Date) -> Bool {
+        !entries(on: date).isEmpty
+    }
+
     private func save() {
         persistence.saveEntries(entries)
     }
 }
+

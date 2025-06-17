@@ -1,26 +1,32 @@
 import SwiftUI
 
 struct CalendarView: View {
+    @ObservedObject var vm: WorkEntryViewModel
     @Binding var selectedDate: Date
     @Binding var displayedMonth: Date
     private let calendar = Calendar.current
 
+    // Compute the 42-day grid for the month
     private var days: [Date] {
-        guard let monthInterval = calendar.dateInterval(of: .month, for: displayedMonth),
-              let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: displayedMonth))
+        guard let firstDayOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: displayedMonth))
         else { return [] }
-        // Determine the start date for grid: beginning of week containing firstDayOfMonth
         let weekday = calendar.component(.weekday, from: firstDayOfMonth)
-        let firstWeekday = calendar.firstWeekday // locale-based
+        let firstWeekday = calendar.firstWeekday
         let offset = (weekday - firstWeekday + 7) % 7
         guard let gridStart = calendar.date(byAdding: .day, value: -offset, to: firstDayOfMonth) else { return [] }
-        // 6 weeks grid (42 days)
         return (0..<42).compactMap { calendar.date(byAdding: .day, value: $0, to: gridStart) }
+    }
+
+    // Rotate weekday symbols so they start on calendar.firstWeekday
+    private var weekdaySymbols: [String] {
+        let symbols = calendar.shortStandaloneWeekdaySymbols  // e.g. ["Sun","Mon",...]
+        let firstIndex = calendar.firstWeekday - 1             // convert 1-based to 0-based
+        guard firstIndex >= 0 && firstIndex < symbols.count else { return symbols }
+        return Array(symbols[firstIndex...] + symbols[..<firstIndex])
     }
 
     var body: some View {
         VStack {
-            // Month header
             HStack {
                 Button(action: { changeMonth(by: -1) }) {
                     Image(systemName: "chevron.left")
@@ -35,23 +41,25 @@ struct CalendarView: View {
             }
             .padding(.horizontal)
 
-            // Weekday labels
-            let symbols = calendar.shortStandaloneWeekdaySymbols
+            // Weekday headers, aligned to locale first weekday
             HStack {
-                ForEach(symbols, id: \ .self) { sym in
+                ForEach(weekdaySymbols, id: \.self) { sym in
                     Text(sym)
                         .frame(maxWidth: .infinity)
                         .font(.subheadline)
                 }
             }
 
-            // Days grid
+            // Day cells
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
                 ForEach(days, id: \.self) { date in
-                    DayCell(date: date,
-                            isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
-                            isWithinMonth: calendar.isDate(date, equalTo: displayedMonth, toGranularity: .month))
-                        .onTapGesture { selectedDate = date }
+                    DayCell(
+                        date: date,
+                        isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                        isWithinMonth: calendar.isDate(date, equalTo: displayedMonth, toGranularity: .month),
+                        hasEntry: vm.hasEntries(on: date)
+                    )
+                    .onTapGesture { selectedDate = date }
                 }
             }
         }
@@ -74,6 +82,8 @@ struct DayCell: View {
     let date: Date
     let isSelected: Bool
     let isWithinMonth: Bool
+    let hasEntry: Bool
+
     private let calendar = Calendar.current
 
     var body: some View {
@@ -84,6 +94,8 @@ struct DayCell: View {
                 Group {
                     if isSelected {
                         Circle().fill(Color.accentColor.opacity(0.3))
+                    } else if hasEntry && isWithinMonth {
+                        Circle().fill(Color.green.opacity(0.3))
                     } else {
                         Color.clear
                     }
@@ -92,3 +104,4 @@ struct DayCell: View {
             .foregroundColor(isWithinMonth ? .primary : .secondary)
     }
 }
+
