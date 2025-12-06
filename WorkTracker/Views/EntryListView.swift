@@ -11,9 +11,8 @@ struct EntryListView: View {
                 Text("Entries for \(dayFormatter.string(from: selectedDate))")
                     .font(.headline)
                 Spacer()
-                Button(action: { showingAdd = true }) {
-                    Image(systemName: "plus.circle")
-                        .font(.title2)
+                Button { showingAdd = true } label: {
+                    Image(systemName: "plus.circle").font(.title2)
                 }
             }
             .padding(.horizontal)
@@ -21,22 +20,28 @@ struct EntryListView: View {
 
             List {
                 ForEach(vm.entries(on: selectedDate)) { entry in
-                    VStack(alignment: .leading) {
-                        Text("Start: \(timeFormatter.string(from: entry.startTime)), End: \(timeFormatter.string(from: entry.endTime))")
-                        Text(String(format: "Hours: %.2f, Earned: %.2f PLN", entry.totalHours, entry.earnings))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    NavigationLink(destination: EntrySummaryView(vm: vm, entry: entry)) {
+                        VStack(alignment: .leading) {
+                            Text(entry.title.isEmpty ? "No Title" : entry.title)
+                                .font(.headline)
+                            Text("\(timeFormatter.string(from: entry.startTime)) – \(timeFormatter.string(from: entry.endTime))")
+                            Text(String(format: "%.2f h • %.2f PLN", entry.totalHours, entry.earnings))
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     .swipeActions {
                         Button(role: .destructive) {
-                            vm.deleteEntry(entry)
+                            Task {
+                                await vm.deleteEntry(entry)  // Now properly awaited
+                            }
                         } label: {
                             Label("Delete", systemImage: "trash")
                         }
                     }
                 }
             }
-            .listStyle(PlainListStyle())
+            .listStyle(.plain)
         }
         .sheet(isPresented: $showingAdd) {
             EntryDetailView(vm: vm, date: selectedDate)
@@ -44,14 +49,14 @@ struct EntryListView: View {
     }
 
     private var dayFormatter: DateFormatter {
-        let df = DateFormatter()
-        df.dateStyle = .medium
-        return df
+        let f = DateFormatter()
+        f.dateStyle = .long
+        return f
     }
+
     private var timeFormatter: DateFormatter {
-        let df = DateFormatter()
-        df.timeStyle = .short
-        return df
+        let f = DateFormatter()
+        f.timeStyle = .short
+        return f
     }
 }
-

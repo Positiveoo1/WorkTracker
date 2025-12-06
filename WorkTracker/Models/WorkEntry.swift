@@ -1,27 +1,64 @@
 import Foundation
+import FirebaseFirestore 
 
 struct WorkEntry: Identifiable, Codable {
-    let id: UUID
-    var date: Date      // normalized to midnight for grouping
-    var startTime: Date // full Date including time
+    var id: String = UUID().uuidString
+    let userId: String
+    let date: Date
+    var startTime: Date
     var endTime: Date
-    var hourlyRate: Double // in PLN
+    var hourlyRate: Double
+    var title: String = ""
 
-    init(id: UUID = UUID(), date: Date, startTime: Date, endTime: Date, hourlyRate: Double) {
+    var totalHours: Double {
+        max(0, endTime.timeIntervalSince(startTime)) / 3600
+    }
+
+    var earnings: Double {
+        totalHours * hourlyRate
+    }
+
+    // Convert to Firestore dictionary
+    func toDict() -> [String: Any] {
+        [
+            "id": id,
+            "userId": userId,
+            "date": Timestamp(date: date),
+            "startTime": Timestamp(date: startTime),
+            "endTime": Timestamp(date: endTime),
+            "hourlyRate": hourlyRate,
+            "title": title
+        ]
+    }
+
+    // Initialize from Firestore document data
+    init?(from dict: [String: Any]) {
+        guard
+            let id = dict["id"] as? String,
+            let userId = dict["userId"] as? String,
+            let dateTs = dict["date"] as? Timestamp,
+            let startTs = dict["startTime"] as? Timestamp,
+            let endTs = dict["endTime"] as? Timestamp,
+            let rate = dict["hourlyRate"] as? Double
+        else { return nil }
+
         self.id = id
+        self.userId = userId
+        self.date = dateTs.dateValue()
+        self.startTime = startTs.dateValue()
+        self.endTime = endTs.dateValue()
+        self.hourlyRate = rate
+        self.title = dict["title"] as? String ?? ""
+    }
+
+    // Convenience init for creating new entries
+    init(userId: String, date: Date, startTime: Date, endTime: Date, hourlyRate: Double, title: String = "") {
+        self.id = UUID().uuidString
+        self.userId = userId
         self.date = Calendar.current.startOfDay(for: date)
         self.startTime = startTime
         self.endTime = endTime
         self.hourlyRate = hourlyRate
-    }
-
-    var totalDuration: TimeInterval {
-        max(0, endTime.timeIntervalSince(startTime))
-    }
-    var totalHours: Double {
-        totalDuration / 3600
-    }
-    var earnings: Double {
-        totalHours * hourlyRate
+        self.title = title
     }
 }
