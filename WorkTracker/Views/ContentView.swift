@@ -7,6 +7,7 @@ struct ContentView: View {
 
     @State private var selectedDate = Date()
     @State private var displayedMonth = Date()
+    @State private var showingAllEntries = false
 
     var body: some View {
         NavigationView {
@@ -30,9 +31,12 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Menu {
-                        NavigationLink(destination: AllEntriesView(vm: vm)) {
+                        Button {
+                            showingAllEntries = true
+                        } label: {
                             Label("All Entries", systemImage: "list.bullet")
                         }
+
                         Button(role: .destructive) {
                             authVM.signOut()
                         } label: {
@@ -42,6 +46,17 @@ struct ContentView: View {
                         Image(systemName: "ellipsis.circle")
                     }
                 }
+            }
+        }
+        .sheet(isPresented: $showingAllEntries) {
+            NavigationStack {
+                AllEntriesView(vm: vm)
+                    .navigationTitle("All Entries")
+                    .toolbar {
+                        ToolbarItem(placement: .navigationBarLeading) {
+                            Button("Done") { showingAllEntries = false }
+                        }
+                    }
             }
         }
     }
