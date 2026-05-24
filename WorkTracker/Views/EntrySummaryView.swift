@@ -2,20 +2,29 @@ import SwiftUI
 
 struct EntrySummaryView: View {
     @ObservedObject var vm: WorkEntryViewModel
+    @EnvironmentObject var clientVM: ClientViewModel
     let entry: WorkEntry
     @State private var showingEdit = false
 
     var body: some View {
         Form {
             Section("Info") {
-                LabeledContent("Date", value: dateFormatter.string(from: entry.date))
+                LabeledContent("Date", value: DateFormatter.longDate.string(from: entry.date))
                 LabeledContent("Title", value: entry.title.isEmpty ? "–" : entry.title)
             }
             Section("Time") {
-                LabeledContent("Start", value: timeFormatter.string(from: entry.startTime))
-                LabeledContent("End", value: timeFormatter.string(from: entry.endTime))
-                LabeledContent("Duration", value: String(format: "%.2f hours", entry.totalHours))
-            }
+                LabeledContent("Start",    value: DateFormatter.shortTime.string(from: entry.startTime))
+                LabeledContent("End",      value: DateFormatter.shortTime.string(from: entry.endTime))
+                LabeledContent("Gross",    value: String(format: "%.2f hours", entry.grossHours))
+
+                if entry.breakMinutes > 0 {
+                    LabeledContent("Break", value: "\(entry.breakMinutes) min")
+                        .foregroundColor(.secondary)
+                }
+
+                LabeledContent("Net",      value: String(format: "%.2f hours", entry.totalHours))
+                    .fontWeight(.semibold)
+            }   
             Section("Earnings") {
                 LabeledContent("Hourly Rate", value: String(format: "%.2f PLN", entry.hourlyRate))
                 LabeledContent("Total Earned", value: String(format: "%.2f PLN", entry.earnings))
@@ -28,19 +37,9 @@ struct EntrySummaryView: View {
             }
         }
         .sheet(isPresented: $showingEdit) {
-            EntryDetailView(vm: vm, date: entry.date, entry: entry)
+            EntryDetailView(vm: vm, clientVM: clientVM, date: entry.date, entry: entry)
         }
     }
 
-    private var dateFormatter: DateFormatter {
-        let f = DateFormatter()
-        f.dateStyle = .long
-        return f
-    }
-
-    private var timeFormatter: DateFormatter {
-        let f = DateFormatter()
-        f.timeStyle = .short
-        return f
-    }
+   
 }

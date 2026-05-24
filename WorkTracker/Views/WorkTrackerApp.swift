@@ -4,7 +4,8 @@ import GoogleSignIn
 
 @main
 struct WorkTrackerApp: App {
-    @StateObject private var authVM = AuthViewModel()
+    @StateObject private var authVM   = AuthViewModel()
+    @StateObject private var clientVM = ClientViewModel()   // ← closing ) was missing
 
     init() {
         FirebaseApp.configure()
@@ -14,6 +15,7 @@ struct WorkTrackerApp: App {
         WindowGroup {
             MainView()
                 .environmentObject(authVM)
+                .environmentObject(clientVM)
                 .onOpenURL { url in
                     GIDSignIn.sharedInstance.handle(url)
                 }
@@ -22,7 +24,7 @@ struct WorkTrackerApp: App {
 }
 
 struct MainView: View {
-    @EnvironmentObject var authVM: AuthViewModel   
+    @EnvironmentObject var authVM: AuthViewModel
 
     var body: some View {
         Group {
